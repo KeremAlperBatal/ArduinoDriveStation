@@ -1,6 +1,6 @@
 # ArduinoDriveStation Library
 
-ArduinoDriveStation is a library for Arduino projects that enables communication over Bluetooth and provides functionality to control the behavior of the project based on the received data.
+ArduinoDriveStation is a library for Arduino projects that enables communication over Bluetooth and provides functionality to control the behavior of the project based on the received data.With this library, you can set your robot to teleop mode, autonom mode and disabled mode via Bluetooth.
 
 ## Installation
 
