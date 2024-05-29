@@ -4,11 +4,15 @@ ArduinoDriveStation is a library for Arduino projects that enables communication
 
 ## Installation
 
-1. Open Arduino IDE.
-2. Go to **Sketch > Include Library > Manage Libraries...** from the menu bar.
-3. Search for "ArduinoDriveStation" in the Library Manager.
-4. Click on the ArduinoDriveStation library, then click **Install** to complete the installation.
-5. To use the library, add `#include <ArduinoDriveStation.h>` at the beginning of your Arduino sketch.
+You can download the library as a zip file and manually install it in your Arduino IDE:
+
+1. Click on the **Code** button at the top of the GitHub repository.
+2. Select **Download ZIP** from the dropdown menu to download the library as a zip file.
+3. Open Arduino IDE.
+4. Go to **Sketch > Include Library > Add .ZIP Library...** from the menu bar.
+5. Navigate to the downloaded zip file and select it.
+6. Click **Open** to complete the installation.
+7. To use the library, add `#include <ArduinoDriveStation.h>` at the beginning of your Arduino sketch.
 
 ## Usage
 
