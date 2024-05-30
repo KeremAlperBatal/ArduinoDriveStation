@@ -16,6 +16,10 @@ You can download the library as a zip file and manually install it in your Ardui
 
 ## Usage
 
+[Link to Arduino Drive Station App](https://github.com/YourUsername/ArduinoDriveStationApp)
+
+The Arduino Drive Station App provides a user interface to switch between different modes using Bluetooth.
+
 ### Initialization
 
 1. Create an ArduinoDriveStation object by specifying the RX and TX pins connected to the Bluetooth module:
