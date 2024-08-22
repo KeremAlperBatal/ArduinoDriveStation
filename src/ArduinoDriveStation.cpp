@@ -11,18 +11,24 @@ void ArduinoDriveStation::update() {
   // Process received data from Bluetooth
   if (bluetooth.available()) {
     char receivedChar = (char)bluetooth.read();
-    switch (receivedChar) {
-      case 'T':
+    static String receivedPacket = "";
+    
+    // If start of packet
+    if (receivedChar == '<') {
+      receivedPacket = "";  // Start a new packet
+    } else if (receivedChar == '>') {
+      // End of packet, process it
+      if (receivedPacket == "T") {
         currentMode = TELEOP;
-        break;
-      case 'A':
+      } else if (receivedPacket == "A") {
         currentMode = AUTONOM;
-        break;
-      case 'D':
+      } else if (receivedPacket == "D") {
         currentMode = DISABLE;
-        break;
-      default:
-        break;
+      }
+      receivedPacket = "";  // Reset the packet
+    } else {
+      // Append received char to the packet
+      receivedPacket += receivedChar;
     }
   }
 
@@ -80,6 +86,7 @@ void ArduinoDriveStation::update() {
 
   // Other operations
 }
+
 
 // Function to set Teleop Init method
 void ArduinoDriveStation::setTeleopInitMethod(void (*initMethod)()) {
