@@ -1,6 +1,6 @@
 # ArduinoDriveStation Library
 
-ArduinoDriveStation is a library for Arduino projects that enables communication over Bluetooth and provides functionality to control the behavior of the project based on the received data.With this library, you can set your robot to teleop mode, autonom mode and disabled mode via Bluetooth.
+ArduinoDriveStation is a library for Arduino projects that enables communication over Bluetooth and provides functionality to control the behavior of the project based on the received data.With this library, you can set your robot to teleop mode, autonom mode, disabled mode and practice mode via Bluetooth.You can also get the data from the joystick and control your robot with it on V2.0
 
 ## Installation
 
@@ -18,18 +18,18 @@ You can download the library as a zip file and manually install it in your Ardui
 
 [Link to Arduino Drive Station App](https://github.com/KeremAlperBatal/ArduinoDriveStationApp)
 
-The Arduino Drive Station App provides a user interface to switch between different modes using Bluetooth.
+The Arduino Drive Station App provides a user interface to switch between different modes and sending the data of joystick using Bluetooth.
 
 ### Initialization
 
-1. Create an ArduinoDriveStation object by specifying the RX and TX pins connected to the Bluetooth module:
+1. Create an ArduinoDriveStation object by specifying the RX and TX pins connected to the Bluetooth module and the total axes and total buttons on your joystick:
     ```cpp
-    ArduinoDriveStation driveStation(rxPin, txPin);
+    ArduinoDriveStation driveStation(rxPin, txPin, totalAxes, totalButtons);
     ```
-2. Initialize the library in the `setup()` function:
+2. Initialize the library in the `setup()` function with a baudRate value (e.g., 9600, 57600):
     ```cpp
     void setup() {
-      driveStation.begin();
+      driveStation.begin(9600);
     }
     ```
 
@@ -64,21 +64,39 @@ The Arduino Drive Station App provides a user interface to switch between differ
 
     // Set Disable mode periodic method
     driveStation.setDisablePeriodicMethod(disablePeriodic);
+    
+    // Set Practice mode initialization method
+    driveStation.setPracticeInitMethod(practiceInit);
+
+    // Set Practice mode periodic method
+    driveStation.setPracticePeriodicMethod(practicePeriodic);
+    ```
+
+### Getting Joystick Data
+
+1. You can get the joystick data using the `getAxis(int axisId)` and `getButton(int buttonId)` methods, they will return the desired values:
+    ```cpp
+    // This code will return the value of the axis3 as float (you can check the axis number on python app)
+    driveStation.getAxis(3);
+
+    // This code will return the value of the button as bool (you can check the button number on python app)
+    driveStation.getButton(1);
     ```
 
 ## Example Code
 
 ```cpp
-#include <Arduino.h>
-#include <SoftwareSerial.h>
-#include "ArduinoDriveStation.h"
+#include <ArduinoDriveStation.h>
 
 // RX and TX pins of the Bluetooth module
 #define RX_PIN 0
 #define TX_PIN 1
 
-// Creating an instance of ArduinoDriveStation
-ArduinoDriveStation driveStation(RX_PIN, TX_PIN);
+//max axis number on joystick, max button number on joystick (you can check the max number on python script)
+#define totalAxes 6
+#define totalButtons 16
+
+ArduinoDriveStation driveStation(RX_PIN, TX_PIN, totalAxes, totalButtons); // RX pin, TX pin for bluetooth connection, max axis number on joystick, max button number on joystick (you can check the max number on python script)
 
 // Teleop Init method
 void teleopInit() {
@@ -90,6 +108,8 @@ void teleopInit() {
 void teleopPeriodic() {
   Serial.println("Teleop Periodic");
   // Teleop mode continuous operations
+  Serial.println(driveStation.getAxis(2)); // Get axis 2 value and print it
+  Serial.println(driveStation.getButton(1)); // Get button 1 value and print it
 }
 
 // Autonom Init method
@@ -116,13 +136,23 @@ void disablePeriodic() {
   // Disable mode continuous operations
 }
 
-void setup() {
-  // Serial communication initialization
-  Serial.begin(9600);
+// Practice Init method
+void practicInit() {
+  Serial.println("Practice Init");
+  // Practic mode initialization settings
+}
 
-  // Initializing the ArduinoDriveStation library
-  driveStation.begin();
+// Practic Periodic method
+void practicPeriodic() {
+  Serial.println("Practic Periodic");
+  // Practic mode continuous operations
+}
+
+
+void setup() {
   
+  driveStation.begin(9600);
+
   // Setting Init and Periodic methods for different modes
   driveStation.setTeleopInitMethod(teleopInit);
   driveStation.setTeleopPeriodicMethod(teleopPeriodic);
@@ -130,11 +160,15 @@ void setup() {
   driveStation.setAutonomPeriodicMethod(autonomPeriodic);
   driveStation.setDisableInitMethod(disableInit);
   driveStation.setDisablePeriodicMethod(disablePeriodic);
+  driveStation.setPracticeInitMethod(practiceInit);
+  driveStation.setPracticePeriodicMethod(practicePeriodic);
 }
 
 void loop() {
-  // Calling the update() method of ArduinoDriveStation library
-  driveStation.update();
+  driveStation.update();// DriveStation Library update function must be called every loop
+  
+  
+  Serial.println(driveStation.getMode()); //Printing currentMode
+  
 
-  // Other operations
 }

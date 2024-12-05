@@ -1,36 +1,32 @@
 #include "ArduinoDriveStation.h"
 
-ArduinoDriveStation::ArduinoDriveStation(int rxPin, int txPin) : bluetooth(rxPin, txPin) {}
+ArduinoDriveStation::ArduinoDriveStation(int rxPin, int txPin, int maxAxes, int maxButtons) : bluetooth(rxPin, txPin), maxAxes(maxAxes), maxButtons(maxButtons) {
+  axes = new float[maxAxes];
+  buttons = new int[maxButtons];
+ }
 
-void ArduinoDriveStation::begin() {
-  Serial.begin(9600);
-  bluetooth.begin(9600);
+void ArduinoDriveStation::begin(long baudRate) {
+  Serial.begin(baudRate);
+  bluetooth.begin(baudRate);
 }
 
 void ArduinoDriveStation::update() {
-  // Process received data from Bluetooth
   if (bluetooth.available()) {
-    char receivedChar = (char)bluetooth.read();
-    static String receivedPacket = "";
-    
-    // If start of packet
-    if (receivedChar == '<') {
-      receivedPacket = "";  // Start a new packet
-    } else if (receivedChar == '>') {
-      // End of packet, process it
-      if (receivedPacket == "T") {
-        currentMode = TELEOP;
-      } else if (receivedPacket == "A") {
-        currentMode = AUTONOM;
-      } else if (receivedPacket == "D") {
-        currentMode = DISABLE;
-      }
-      receivedPacket = "";  // Reset the packet
-    } else {
-      // Append received char to the packet
-      receivedPacket += receivedChar;
-    }
+    String data = bluetooth.readStringUntil('\n');
+    parseData(data);
   }
+  
+  if (mode == "Teleop") {
+    currentMode = TELEOP;
+} else if (mode == "Autonom") {
+    currentMode = AUTONOM;
+} else if (mode == "Disable") {
+    currentMode = DISABLE;
+} else if (mode == "Practice") {
+    currentMode = PRACTICE;
+} else{
+  currentMode = DISABLE;
+}
 
   // Set initRequired flag to true when mode changes
   if (currentMode != previousMode) {
@@ -58,6 +54,11 @@ void ArduinoDriveStation::update() {
           disableInitFunc();
         }
         break;
+      case PRACTICE:
+        if (practiceInitFunc != nullptr) {
+          practiceInitFunc();
+        }
+        break;
       default:
         break;
     }
@@ -80,13 +81,66 @@ void ArduinoDriveStation::update() {
         disablePeriodicFunc();
       }
       break;
+    case PRACTICE:
+      if (practicePeriodicFunc != nullptr) {
+        practicePeriodicFunc();
+      }
+      break;
     default:
       break;
   }
 
   // Other operations
 }
+float ArduinoDriveStation::getAxis(int axisID) {
+  if (axisID >= 0 && axisID < maxAxes) {
+    return axes[axisID-1];
+  } else {
+    return 0.0; // Geçersiz eksen ID'si için varsayılan değer
+  }
+}
 
+bool ArduinoDriveStation::getButton(int buttonID) {
+  if (buttonID >= 0 && buttonID < maxButtons) {
+    return buttons[buttonID-1] == 1; // Buton değeri 1 ise true, aksi halde false
+  } else {
+    return false; // Geçersiz buton ID'si için varsayılan değer
+  }
+}
+
+String ArduinoDriveStation::getMode() {
+  return mode;
+}
+
+void ArduinoDriveStation::parseData(String data) {
+  if (data.startsWith("{\"mode\":")) {
+    mode = data.substring(data.indexOf(":") + 1, data.indexOf("}"));
+  } else if (data.startsWith("{\"axes\":")) {
+    String axesData = data.substring(data.indexOf(":") + 1, data.indexOf("}"));
+    axesData.replace("[", "");
+    axesData.replace("]", "");
+
+    int index = 0;
+    char* token = strtok((char*)axesData.c_str(), ",");
+    while (token != NULL && index < maxAxes) {
+      axes[index] = atof(token);
+      token = strtok(NULL, ",");
+      index++;
+    }
+  } else if (data.startsWith("{\"buttons\":")) {
+    String buttonsData = data.substring(data.indexOf(":") + 1, data.indexOf("}"));
+    buttonsData.replace("[", "");
+    buttonsData.replace("]", "");
+
+    int index = 0;
+    char* token = strtok((char*)buttonsData.c_str(), ",");
+    while (token != NULL && index < maxButtons) {
+      buttons[index] = atoi(token);
+      token = strtok(NULL, ",");
+      index++;
+    }
+  }
+}
 
 // Function to set Teleop Init method
 void ArduinoDriveStation::setTeleopInitMethod(void (*initMethod)()) {
@@ -116,4 +170,14 @@ void ArduinoDriveStation::setDisableInitMethod(void (*initMethod)()) {
 // Function to set Disable Periodic method
 void ArduinoDriveStation::setDisablePeriodicMethod(void (*periodicMethod)()) {
   disablePeriodicFunc = periodicMethod;
+}
+
+// Function to set Practice Init method
+void ArduinoDriveStation::setPracticeInitMethod(void (*initMethod)()) {
+  practiceInitFunc = initMethod;
+}
+
+// Function to set Practice Periodic method
+void ArduinoDriveStation::setPracticePeriodicMethod(void (*periodicMethod)()) {
+  practicePeriodicFunc = periodicMethod;
 }
