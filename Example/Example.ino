@@ -49,13 +49,13 @@ void disablePeriodic() {
 }
 
 // Practice Init method
-void practicInit() {
+void practiceInit() {
   Serial.println("Practice Init");
   // Practic mode initialization settings
 }
 
 // Practic Periodic method
-void practicPeriodic() {
+void practicePeriodic() {
   Serial.println("Practic Periodic");
   // Practic mode continuous operations
 }
